@@ -2,7 +2,8 @@
 
 > [!NOTE]
 >
-> create-t3-turbo now includes the option to use Tanstack Start for the web app!
+> This fork includes a **vinext** (Cloudflare) app alongside the original Next.js and Tanstack Start options.
+> [Vinext](https://github.com/cloudflare/vinext) re-implements the Next.js API surface on Vite, targeting Cloudflare Workers.
 
 ## Installation
 
@@ -40,10 +41,16 @@ apps
   │   ├─ Tailwind CSS v4 using NativeWind v5
   │   └─ Typesafe API calls using tRPC
   ├─ nextjs
-  │   ├─ Next.js 15
+  │   ├─ Next.js 16
   │   ├─ React 19
   │   ├─ Tailwind CSS v4
   │   └─ E2E Typesafe API Server & Client
+  ├─ vinext
+  │   ├─ Vinext (Vite + Cloudflare Workers)
+  │   ├─ React 19
+  │   ├─ Tailwind CSS v4
+  │   ├─ E2E Typesafe API Server & Client
+  │   └─ Deploy to Cloudflare Workers
   └─ tanstack-start
       ├─ Tanstack Start v1 (rc)
       ├─ React 19
@@ -197,9 +204,9 @@ If you need to share runtime code between the client and server, such as input v
 #### Prerequisites
 
 > **Note**
-> Please note that the Next.js application with tRPC must be deployed in order for the Expo app to communicate with the server in a production environment.
+> Please note that the web application with tRPC must be deployed in order for the Expo app to communicate with the server in a production environment.
 
-#### Deploy to Vercel
+#### Deploy to Vercel (Next.js)
 
 Let's deploy the Next.js application to [Vercel](https://vercel.com). If you've never deployed a Turborepo app there, don't worry, the steps are quite straightforward. You can also read the [official Turborepo guide](https://vercel.com/docs/concepts/monorepos/turborepo) on deploying to Vercel.
 
@@ -208,6 +215,44 @@ Let's deploy the Next.js application to [Vercel](https://vercel.com). If you've 
 2. Add your `POSTGRES_URL` environment variable.
 
 3. Done! Your app should successfully deploy. Assign your domain and use that instead of `localhost` for the `url` in the Expo app so that your Expo app can communicate with your backend when you are not in development.
+
+#### Deploy to Cloudflare (Vinext)
+
+The vinext app deploys to [Cloudflare Workers](https://workers.cloudflare.com). It re-implements the Next.js API surface using Vite, so the app code is nearly identical to the Next.js version.
+
+1. Install dependencies and build:
+
+   ```bash
+   pnpm i
+   pnpm --filter @acme/vinext build
+   ```
+
+2. Deploy to Cloudflare:
+
+   ```bash
+   cd apps/vinext
+   npx wrangler deploy
+   ```
+
+3. Set your environment variables (secrets) on Cloudflare:
+
+   ```bash
+   npx wrangler secret put POSTGRES_URL
+   npx wrangler secret put AUTH_SECRET
+   npx wrangler secret put AUTH_DISCORD_ID
+   npx wrangler secret put AUTH_DISCORD_SECRET
+   npx wrangler secret put APP_URL  # Your production URL, e.g. https://your-app.workers.dev
+   ```
+
+4. For local development:
+
+   ```bash
+   # Development with Vite
+   pnpm --filter @acme/vinext dev
+
+   # Preview with Wrangler (Cloudflare Workers runtime)
+   pnpm --filter @acme/vinext preview
+   ```
 
 ### Auth Proxy
 
